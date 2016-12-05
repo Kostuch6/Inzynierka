@@ -14,6 +14,7 @@ namespace Inzynierka
 
         public String decide(int[] myState, int[] enemyState)
         {
+
             return root.decide(myState, enemyState);
         }
     }
