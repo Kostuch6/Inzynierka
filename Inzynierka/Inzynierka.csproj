@@ -43,7 +43,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BinaryTree.cs" />
+    <Compile Include="DecisionTree.cs" />
     <Compile Include="Decision.cs" />
     <Compile Include="DecisionList.cs" />
     <Compile Include="DecisionNode.cs" />

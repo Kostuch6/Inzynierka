@@ -12,6 +12,6 @@ namespace Inzynierka
         public Node leftChild { get; set; }
         public Node rightChild { get; set; }
 
-        public abstract String decide(int[] myState, int[] enemyState);
+        public abstract String decide(Dictionary<string, int> state);
     }
 }

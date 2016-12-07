@@ -10,15 +10,15 @@ namespace Inzynierka
     {
         public Decision Decision { get; set; }
 
-        public override String decide(int[] myState, int[] enemyState)
+        public override String decide(Dictionary<string, int> state)
         {
-            if (Decision.test(myState, enemyState))
+            if (Decision.test(state))
             {
-                return leftChild.decide(myState, enemyState);
+                return leftChild.decide(state);
             }
             else
             {
-                return rightChild.decide(myState, enemyState);
+                return rightChild.decide(state);
             }
         }
     }
