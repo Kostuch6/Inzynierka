@@ -3,16 +3,22 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using State = System.Collections.Generic.Dictionary<string, int>;
 
 namespace Inzynierka
 {
     class ResultNode : Node
     {
-        public String Result { get; set; }
+        public Move Move { get; set; }
 
-        public override string decide(int[] myState, int[] enemyState)
+        public ResultNode(Move move)
         {
-            return Result;
+            Move = move;
+        }
+
+        public override Move decide(State state)
+        {
+            return Move;
         }
     }
 }

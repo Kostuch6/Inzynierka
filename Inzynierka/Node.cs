@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using State = System.Collections.Generic.Dictionary<string, int>;
 
 namespace Inzynierka
 {
@@ -12,6 +13,6 @@ namespace Inzynierka
         public Node leftChild { get; set; }
         public Node rightChild { get; set; }
 
-        public abstract String decide(Dictionary<string, int> state);
+        public abstract Move decide(Dictionary<string, int> state);
     }
 }

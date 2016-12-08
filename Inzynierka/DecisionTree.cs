@@ -3,22 +3,24 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using State = System.Collections.Generic.Dictionary<string, int>;
 
 namespace Inzynierka
 {
     class DecisionTree
     {
+        static Random r = new Random();
+
         private Node root;
 
-        public void addNode() { }
-
-        public DecisionTree(List<int> probabilityList)
+        public DecisionTree(List<int> probabilityList, State state)
         {
-            root = generateDecisionNode();
-            generateTree(probabilityList, parent);
+            DecisionNode parent = generateDecisionNode(state);
+            root = parent;
+            generateTree(probabilityList, parent, 1, state);
         }
 
-        public String decide(Dictionary<string,int> state)
+        public Move decide(State state)
         {
             return root.decide(state);
         }
@@ -39,29 +41,47 @@ namespace Inzynierka
             //NIE
                 //utworzenie liscia
             
-        public void generateTree(List<int> probabilityList, Node parent)
+        public void generateTree(List<int> probabilityList, Node parent, int levelIndex, State state)
         {
-            //chujowizna, spierdoli sie przy rekurencji
-            Random r = new Random();
-            int levelIndex = 2;
+            
+            if (probabilityList[levelIndex] >= r.Next(1, 101))
+            {
+                DecisionNode leftChild = generateDecisionNode(state);
+                parent.leftChild = leftChild;
+                generateTree(probabilityList, leftChild, levelIndex + 1, state);
+            }
+            else
+            {
+                parent.leftChild = generateResultNode();
+            }
 
             if (probabilityList[levelIndex] >= r.Next(1, 101))
             {
-                DecisionNode leftChild = generateDecisionNode();
-
+                DecisionNode rightChild = generateDecisionNode(state);
+                parent.rightChild = rightChild;
+                generateTree(probabilityList, rightChild, levelIndex + 1, state);
+            }
+            else
+            {
+                parent.rightChild = generateResultNode();
             }
         }
 
-        public DecisionNode generateDecisionNode()
+        public DecisionNode generateDecisionNode(State state)
         {
             //TODO tworzenie wezla decyzji, dodanie parametrow
+
+            Decision decision = new Decision();
+            //TODO losowanie wszystkich 3 elementow decyzji
+            DecisionNode node = new DecisionNode();
             return null;
         }
 
         public ResultNode generateResultNode()
         {
-            //TODO tworzenie wezla wyniku, dodanie parametrow
-            return null;
+            Array values = Enum.GetValues(typeof(Move));
+            ResultNode Result = new ResultNode((Move)values.GetValue(r.Next(values.Length)));
+            return Result;
         }
     }
 }

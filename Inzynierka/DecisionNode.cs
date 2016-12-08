@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using State = System.Collections.Generic.Dictionary<string, int>;
 
 namespace Inzynierka
 {
@@ -10,7 +11,7 @@ namespace Inzynierka
     {
         public Decision Decision { get; set; }
 
-        public override String decide(Dictionary<string, int> state)
+        public override Move decide(State state)
         {
             if (Decision.test(state))
             {

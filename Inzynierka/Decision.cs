@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using State = System.Collections.Generic.Dictionary<string, int>;
 
 namespace Inzynierka
 {
@@ -14,7 +15,7 @@ namespace Inzynierka
         public Test Test { get; set; }
         public int Param { get; set; }
 
-        public bool test(Dictionary<string, int> state)
+        public bool test(State state)
         {
             return Test(state[Statistic], Param);
         }
