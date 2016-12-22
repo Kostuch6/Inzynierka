@@ -13,6 +13,6 @@ namespace Inzynierka
         public Node leftChild { get; set; }
         public Node rightChild { get; set; }
 
-        public abstract Move decide(Dictionary<string, int> state);
+        public abstract Move decide(State state);
     }
 }

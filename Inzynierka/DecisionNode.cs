@@ -11,6 +11,11 @@ namespace Inzynierka
     {
         public Decision Decision { get; set; }
 
+		public DecisionNode(Decision decision)
+		{
+			Decision = decision;
+		}
+
         public override Move decide(State state)
         {
             if (Decision.test(state))

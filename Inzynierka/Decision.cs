@@ -9,11 +9,18 @@ namespace Inzynierka
 {
     public delegate bool Test(int stat, int param);
 
-    class Decision
+    public class Decision
     {
         public string Statistic { get; set; }
         public Test Test { get; set; }
         public int Param { get; set; }
+
+		public Decision(string stat, Test test, int param)
+		{
+			Statistic = stat;
+			Test = test;
+			Param = param;
+        }
 
         public bool test(State state)
         {

@@ -46,7 +46,7 @@
     <Compile Include="DecisionTree.cs" />
     <Compile Include="Decision.cs" />
     <Compile Include="DecisionNode.cs" />
-    <Compile Include="GlobalConst.cs" />
+    <Compile Include="Const.cs" />
     <Compile Include="Move.cs" />
     <Compile Include="Node.cs" />
     <Compile Include="Program.cs" />
