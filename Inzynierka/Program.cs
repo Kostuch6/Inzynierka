@@ -16,24 +16,97 @@ namespace Inzynierka
 			State state = StateInit();
 			State maxValues = MaxValuesInit();
 			List<Test> tests = TestsInit();
-			DecisionTree tree = new DecisionTree(new List<int> { 100, 100, 50, 0 }, state, maxValues, tests);
-			Console.WriteLine("udao sie");
-			Console.WriteLine(tree.decide(state).ToString());
+			int iterations = 100;
+            int populationSize = 50;
+			double crossoverProb = 0.01;
+			double mutationProb = 0.001;
+			Random r = new Random();
+            List<DecisionTree> population = new List<DecisionTree>();
+            List<int> fitness = new List<int>();
+            DecisionTree enemy = new DecisionTree(new List<int> { 100, 100, 50, 0 }, state, maxValues, tests); //TODO enemy powinien byc staly
+            //DecisionTree tree = new DecisionTree(new List<int> { 100, 100, 50, 0 }, state, maxValues, tests);
+            //Console.WriteLine("udao sie");
+            //Console.WriteLine(tree.decide(state).ToString());
 
-			//petla walki
-			int turnsLeft = 100;
-			while(turnsLeft > 0 || state["HP"] <= 0 || state["enemyHP"] <= 0)
+            //population init
+            for (int i = 0; i < populationSize; i++)
+            {
+                population.Add(new DecisionTree(new List<int> { 100, 100, 50, 0 }, state, maxValues, tests));
+            }
+
+			while (iterations > 0) //glowna petla programu, ustalona ilosc iteracji, pozniej dodac zatrzymanie po stagnacji
 			{
-				MakeMove(tree.decide(state), state); //TODO tree wrzucone na chwile, powinien byc osobnik z populacji
-				//EnemyMakeMove(enemy.decide(state), state); //TODO jakies drzewo przechowujace przeciwnika albo ustalonego z gory albo z poprzedniej populacji
-				turnsLeft--;
-			}
+				for (int j = 0; j < populationSize; j++)
+				{
+					//petla walki
+					int turn = 1;
+					while (turn <= 100 && state["HP"] > 0 && state["enemyHP"] > 0)
+					{
+						Console.WriteLine("Osobnik {0}, tura: {1}", j, turn);
+						MakeMove(population[j].decide(state), state);
+						EnemyMakeMove(enemy.decide(state), state);
+						turn++;
+					}
+					Console.WriteLine("HP -> {0}", state["HP"]);
+					Console.WriteLine("enemyHP -> {0}", state["enemyHP"]);
+					Console.WriteLine("distance -> {0}", state["distance"]);
+					Console.WriteLine("isInDanger -> {0}", state["isInDanger"]);
+					Console.WriteLine("enemyIsInDanger -> {0}", state["enemyIsInDanger"]);
+					Console.WriteLine("isDefending -> {0}", state["isDefending"]);
+					Console.WriteLine("enemyIsDefending -> {0}", state["enemyIsDefending"]);
+					state = StateInit();
+					//Console.ReadLine();
 
+					fitness[j] = Evaluate(state, maxValues, turn);
+				}
+				List<DecisionTree> SelectedIndividuals = new List<DecisionTree>();
+				//selekcja
+
+				population.Clear(); // usuniecie starej populacji
+
+				//wybranie osobnikow do krzyzowania, przepisanie reszty do nowej populacji
+				List<DecisionTree> IndividualsToCross = new List<DecisionTree>();
+				for (int i = 0; i < populationSize; i++)
+				{
+					if(r.NextDouble() <= crossoverProb)
+					{
+						IndividualsToCross.Add(SelectedIndividuals[i]);
+					}
+					else
+					{
+						population.Add(SelectedIndividuals[i]);
+					}
+				}
+				//zapewnienie parzystej ilosci osobnikow do krzyzowania
+				if(IndividualsToCross.Count % 2 != 0)
+				{
+					IndividualsToCross.RemoveAt(IndividualsToCross.Count - 1);
+				}
+
+				//krzyzowanie
+				while(IndividualsToCross.Count > 0)
+				{
+					DecisionTree Individual1 = IndividualsToCross[r.Next(IndividualsToCross.Count)];
+					IndividualsToCross.Remove(Individual1);
+					DecisionTree Individual2 = IndividualsToCross[r.Next(IndividualsToCross.Count)];
+					IndividualsToCross.Remove(Individual2);
+					Crossover(Individual1, Individual2);
+					population.Add(Individual1);
+					population.Add(Individual2);
+				}
+
+				//mutacja
+
+				//wybranie najlepszego z poprzedniej populacji i ustawienie na enemy
+				iterations--;
+			}
+            
 			Console.ReadLine();
 		}
 
 		static void MakeMove(Move move, State state)
 		{
+			Console.WriteLine("Ruch osobnika: " +move.ToString());
 			if(state["enemyIsInDanger"] == 1)
 			{
 				if (state["enemyIsDefending"] == 1)
@@ -203,10 +276,16 @@ namespace Inzynierka
 				default:
 					break;
 			}
+			if(state["enemyHP"] < 0)
+			{
+				state["enemyHP"] = 0;
+			}
 		}
 
 		static void EnemyMakeMove(Move move, State state)
 		{
+			Console.WriteLine("Ruch przeciwnika: " + move.ToString());
+
 			if (state["isInDanger"] == 1)
 			{
 				if (state["isDefending"] == 1)
@@ -376,6 +455,10 @@ namespace Inzynierka
 				default:
 					break;
 			}
+			if (state["HP"] < 0)
+			{
+				state["HP"] = 0;
+			}
 		}
 
 		public static State StateInit()
@@ -415,5 +498,22 @@ namespace Inzynierka
 			Tests.Add((a, b) => a != b);
 			return Tests;
 		}
+
+		public static int Evaluate(State state, State maxValues, int turn)
+		{
+			int fitness = ((maxValues["enemyHP"] - state["enemyHP"]) * 2) - state["HP"] - turn;
+			if(state["HP"] == 0)
+			{
+				fitness /= 2;
+			}
+			return fitness;
+		}
+
+		public static void Crossover( DecisionTree Individual1, DecisionTree Individual2)
+		{
+			//TODO sposob krzyzowania
+		}
+
+        //TODO metoda wyswietlajaca drzewo
     }
 }

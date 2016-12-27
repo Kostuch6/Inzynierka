@@ -7,7 +7,7 @@ using State = System.Collections.Generic.Dictionary<string, int>;
 
 namespace Inzynierka
 {
-    class DecisionNode : Node
+    public class DecisionNode : Node
     {
         public Decision Decision { get; set; }
 

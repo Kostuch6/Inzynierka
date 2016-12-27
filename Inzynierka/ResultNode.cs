@@ -7,7 +7,7 @@ using State = System.Collections.Generic.Dictionary<string, int>;
 
 namespace Inzynierka
 {
-    class ResultNode : Node
+    public class ResultNode : Node
     {
         public Move Move { get; set; }
 

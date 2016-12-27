@@ -7,9 +7,9 @@ using State = System.Collections.Generic.Dictionary<string, int>;
 
 namespace Inzynierka
 {
-    abstract class Node
+    public abstract class Node
     {
-        public int Key { get; set; }
+        //public int Key { get; set; }
         public Node leftChild { get; set; }
         public Node rightChild { get; set; }
 

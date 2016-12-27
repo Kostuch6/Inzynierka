@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Inzynierka
 {
-    enum Move
+    public enum Move
     {
         SHORT_MOVE_FORWARD,
         SHORT_MOVE_BACK,
