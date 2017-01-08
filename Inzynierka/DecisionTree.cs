@@ -19,7 +19,9 @@ namespace Inzynierka
         {
             DecisionNode parent = generateDecisionNode(state, maxValues, tests);
 			//Console.WriteLine("root: Stat -> {0}, Test -> {1}, Param -> {2}",parent.Decision.Statistic, parent.Decision.Test.ToString(), parent.Decision.Param);
-            root = parent;
+			elementCount++;
+			parent.Key = elementCount;
+			root = parent;
             generateTree(probabilityList, parent, 1, state, maxValues, tests);
         }
 
@@ -52,14 +54,18 @@ namespace Inzynierka
             {
 				//Console.WriteLine("Generowanie lewego wezla");
                 DecisionNode leftChild = generateDecisionNode(state, maxValues, tests);
-                parent.leftChild = leftChild;
+				elementCount++;
+				leftChild.Key = elementCount;
+				parent.leftChild = leftChild;
                 generateTree(probabilityList, leftChild, levelIndex + 1, state, maxValues, tests);
             }
             else
             {
 				//Console.WriteLine("Generowanie lewego liscia");
-				parent.leftChild = generateResultNode();
-            }
+				parent.leftChild = GenerateResultNode();
+				elementCount++;
+				parent.leftChild.Key = elementCount;
+			}
 
 			//Console.WriteLine("Powrot na poziom: {0}", levelIndex);
 
@@ -67,15 +73,19 @@ namespace Inzynierka
             {
 				//Console.WriteLine("Generowanie prawego wezla");
 				DecisionNode rightChild = generateDecisionNode(state, maxValues, tests);
-                parent.rightChild = rightChild;
+				elementCount++;
+				rightChild.Key = elementCount;
+				parent.rightChild = rightChild;
                 generateTree(probabilityList, rightChild, levelIndex + 1, state, maxValues, tests);
             }
             else
             {
 				//Console.WriteLine("Generowanie prawego liscia");
-				parent.rightChild = generateResultNode();
-            }
-        }
+				parent.rightChild = GenerateResultNode();
+				elementCount++;
+				parent.rightChild.Key = elementCount;
+			}
+		}
 
         public DecisionNode generateDecisionNode(State state, State maxValues, List<Test> tests)
         {
@@ -90,12 +100,42 @@ namespace Inzynierka
 			return node;
         }
 
-        public ResultNode generateResultNode()
+        public ResultNode GenerateResultNode()
         {
             Array values = Enum.GetValues(typeof(Move));
             ResultNode Result = new ResultNode((Move)values.GetValue(r.Next(values.Length)));
 			//Console.WriteLine("Result: {0}", Result.Move.ToString());
             return Result;
         }
-    }
+
+		public int CountElements()
+		{
+			elementCount = root.count();
+			return elementCount;
+		}
+
+		public Node Find(int i, Node node)
+		{
+			if (node != null)
+			{
+				if (node.Key == i)
+				{
+					return node;
+				}
+				else
+				{
+					Node foundNode = Find(i, node.leftChild);
+					if (foundNode == null)
+					{
+						foundNode = Find(i, node.rightChild);
+					}
+					return foundNode;
+				}
+			}
+			else
+			{
+				return null;
+			}
+		}
+	}
 }

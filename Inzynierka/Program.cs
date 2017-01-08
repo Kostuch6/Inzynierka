@@ -32,7 +32,9 @@ namespace Inzynierka
             for (int i = 0; i < populationSize; i++)
             {
                 population.Add(new DecisionTree(new List<int> { 100, 100, 50, 0 }, state, maxValues, tests));
-            }
+				//Console.WriteLine("Wielkosc drzewa: {0}", population[i].elementCount);
+				//Console.WriteLine("Wielkosc drzewa': {0}", population[i].CountElements());
+			}
 
 			while (iterations > 0) //glowna petla programu, ustalona ilosc iteracji, pozniej dodac zatrzymanie po stagnacji
 			{
@@ -57,7 +59,7 @@ namespace Inzynierka
 					state = StateInit();
 					//Console.ReadLine();
 
-					fitness[j] = Evaluate(state, maxValues, turn);
+					fitness.Add(Evaluate(state, maxValues, turn));
 				}
 				List<DecisionTree> SelectedIndividuals = new List<DecisionTree>();
 				//selekcja
@@ -512,6 +514,10 @@ namespace Inzynierka
 		public static void Crossover( DecisionTree Individual1, DecisionTree Individual2)
 		{
 			//TODO sposob krzyzowania
+
+			//wybranie punktu przeciecia z zakresu elementCount
+			//dla obu osobnikow
+			//zamiana miejscami poddrzew
 		}
 
         //TODO metoda wyswietlajaca drzewo
