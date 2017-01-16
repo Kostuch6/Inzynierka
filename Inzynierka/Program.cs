@@ -7,8 +7,6 @@ using State = System.Collections.Generic.Dictionary<string, int>;
 
 namespace Inzynierka
 {
-    
-
     public class Program
     {
         static void Main(string[] args)
@@ -22,7 +20,6 @@ namespace Inzynierka
 			double mutationProb = 0.001;
 			Random r = new Random();
             List<DecisionTree> population = new List<DecisionTree>();
-            List<int> fitness = new List<int>();
             DecisionTree enemy = new DecisionTree(new List<int> { 100, 100, 50, 0 }, state, maxValues, tests); //TODO enemy powinien byc staly
             //DecisionTree tree = new DecisionTree(new List<int> { 100, 100, 50, 0 }, state, maxValues, tests);
             //Console.WriteLine("udao sie");
@@ -44,7 +41,7 @@ namespace Inzynierka
 					int turn = 1;
 					while (turn <= 100 && state["HP"] > 0 && state["enemyHP"] > 0)
 					{
-						Console.WriteLine("Osobnik {0}, tura: {1}", j, turn);
+						//Console.WriteLine("Osobnik {0}, tura: {1}", j, turn);
 						MakeMove(population[j].decide(state), state);
 						EnemyMakeMove(enemy.decide(state), state);
 						turn++;
@@ -59,10 +56,10 @@ namespace Inzynierka
 					state = StateInit();
 					//Console.ReadLine();
 
-					fitness.Add(Evaluate(state, maxValues, turn));
-				}
-				List<DecisionTree> SelectedIndividuals = new List<DecisionTree>();
+					population[j].fitness = Evaluate(state, maxValues, turn);
+                }
 				//selekcja
+				List<DecisionTree> SelectedIndividuals = EliteRankingSelection(population, populationSize, r);		
 
 				population.Clear(); // usuniecie starej populacji
 
@@ -82,6 +79,7 @@ namespace Inzynierka
 				//zapewnienie parzystej ilosci osobnikow do krzyzowania
 				if(IndividualsToCross.Count % 2 != 0)
 				{
+					population.Add(IndividualsToCross.Last());
 					IndividualsToCross.RemoveAt(IndividualsToCross.Count - 1);
 				}
 
@@ -92,7 +90,7 @@ namespace Inzynierka
 					IndividualsToCross.Remove(Individual1);
 					DecisionTree Individual2 = IndividualsToCross[r.Next(IndividualsToCross.Count)];
 					IndividualsToCross.Remove(Individual2);
-					Crossover(Individual1, Individual2);
+					Crossover(Individual1, Individual2, r);
 					population.Add(Individual1);
 					population.Add(Individual2);
 				}
@@ -503,7 +501,7 @@ namespace Inzynierka
 
 		public static int Evaluate(State state, State maxValues, int turn)
 		{
-			int fitness = ((maxValues["enemyHP"] - state["enemyHP"]) * 2) - state["HP"] - turn;
+			int fitness = ((maxValues["enemyHP"] - state["enemyHP"]) * 2) + state["HP"] - turn;
 			if(state["HP"] == 0)
 			{
 				fitness /= 2;
@@ -511,15 +509,81 @@ namespace Inzynierka
 			return fitness;
 		}
 
-		public static void Crossover( DecisionTree Individual1, DecisionTree Individual2)
+		public static void Crossover( DecisionTree individual1, DecisionTree individual2, Random r)
 		{
-			//TODO sposob krzyzowania
-
 			//wybranie punktu przeciecia z zakresu elementCount
 			//dla obu osobnikow
-			//zamiana miejscami poddrzew
+			//zamiana miejscami tylko poddrzew wybranych elementow
+			//TODO nie dziala dobrze przy resultNode
+
+			int locus1 = r.Next(1, individual1.elementCount + 1);
+			int locus2 = r.Next(1, individual2.elementCount + 1);
+			Node node1 = individual1.Find(locus1, individual1.root);
+			Node node2 = individual2.Find(locus2, individual2.root);
+
+			Node tempNode = null;
+
+			if (node1.leftChild != null)
+			{
+				tempNode = node1.leftChild;
+			}
+			if(node2.leftChild != null)
+			{
+				node1.leftChild = node2.leftChild;
+			}
+			else
+			{
+				node1.leftChild = null;
+			}
+			node2.leftChild = tempNode;
+
+			tempNode = null;
+
+			if (node1.rightChild != null)
+			{
+				tempNode = node1.rightChild;
+			}
+			if (node2.rightChild != null)
+			{
+				node1.rightChild = node2.rightChild;
+			}
+			else
+			{
+				node1.rightChild = null;
+			}
+			node2.rightChild = tempNode;
+
+			individual1.RecalculateKeys();
+			individual2.RecalculateKeys();
 		}
 
-        //TODO metoda wyswietlajaca drzewo
-    }
+		public static List<DecisionTree> EliteRankingSelection(List<DecisionTree> population, int populationSize, Random r)
+		{
+			population = population.OrderBy(p => p.fitness).ToList();
+			List<DecisionTree> SelectedIndividuals = new List<DecisionTree>();
+			//SelectedIndividuals.Add(population[populationSize-1]); //przepisanie najlepszego osobnika bez zmian
+			int totalSum = 0;
+			for (int i = 1; i < populationSize; i++)
+			{
+				totalSum += i;
+			}
+			for (int i = 1; i <= populationSize; i++) //petla wybierajaca osobniki
+			{
+				int selectedInt = r.Next(1, totalSum + 1); // losowy int z przedzialu
+				int sum = 0;
+				for (int j = 1; j <= populationSize; j++) //petla sprawdzaja ktory osobnik zostal wybrany
+				{
+					sum += j;
+					if(selectedInt <=sum)
+					{
+						SelectedIndividuals.Add(population[j]);
+						break;
+					}
+				}
+			}
+			return SelectedIndividuals;
+		}
+
+		//TODO metoda wyswietlajaca drzewo
+	}
 }

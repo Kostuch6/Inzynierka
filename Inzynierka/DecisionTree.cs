@@ -13,9 +13,10 @@ namespace Inzynierka
 
 		public int elementCount { get; set; } = 0;
 
-		private Node root;
+		public Node root { get; set; }
+		public int fitness { get; set; }
 
-        public DecisionTree(List<int> probabilityList, State state, State maxValues, List<Test> tests)
+		public DecisionTree(List<int> probabilityList, State state, State maxValues, List<Test> tests)
         {
             DecisionNode parent = generateDecisionNode(state, maxValues, tests);
 			//Console.WriteLine("root: Stat -> {0}, Test -> {1}, Param -> {2}",parent.Decision.Statistic, parent.Decision.Test.ToString(), parent.Decision.Param);
@@ -110,8 +111,13 @@ namespace Inzynierka
 
 		public int CountElements()
 		{
-			elementCount = root.count();
+			elementCount = root.Count();
 			return elementCount;
+		}
+
+		public void RecalculateKeys()
+		{
+			root.RecalculateKeys(root);
 		}
 
 		public Node Find(int i, Node node)

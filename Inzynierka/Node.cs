@@ -15,12 +15,27 @@ namespace Inzynierka
 
         public abstract Move decide(State state);
 
-		public int count()
+		public int Count()
 		{
-			int left = leftChild == null ? 0 : leftChild.count();
-			int right = rightChild == null ? 0 : rightChild.count();
+			int left = leftChild == null ? 0 : leftChild.Count();
+			int right = rightChild == null ? 0 : rightChild.Count();
 
 			return left + right + 1;
+		}
+
+		public int RecalculateKeys(Node node, int elemCount = 0)
+		{
+			elemCount++;
+			node.Key = elemCount;
+			if(node.leftChild != null)
+			{
+				elemCount = RecalculateKeys(node.leftChild, elemCount);
+			}
+			if(node.rightChild != null)
+			{
+				elemCount = RecalculateKeys(node.rightChild, elemCount);
+			}
+			return elemCount;
 		}
 	}
 }
