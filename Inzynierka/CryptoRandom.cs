@@ -3,7 +3,7 @@ using System.Security.Cryptography;
 ///<summary>
 /// Represents a pseudo-random number generator, a device that produces random data.
 ///</summary>
-class CryptoRandom : RandomNumberGenerator
+public class CryptoRandom : RandomNumberGenerator
 {
 	private static RandomNumberGenerator r;
 	///<summary>
@@ -46,12 +46,5 @@ class CryptoRandom : RandomNumberGenerator
 	{
 		return Next(0, Int32.MaxValue);
 	}
-	///<summary>
-	/// Returns a nonnegative random number less than the specified maximum
-	///</summary>
-	///<param name=”maxValue”>The inclusive upper bound of the random number returned. maxValue must be greater than or equal 0</param>
-	public int Next(int maxValue)
-	{
-		return Next(0, maxValue);
-	}
+
 }

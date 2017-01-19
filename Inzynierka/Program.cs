@@ -16,9 +16,9 @@ namespace Inzynierka
 			List<Test> tests = TestsInit();
 			int iterations = 100;
             int populationSize = 50;
-			double crossoverProb = 0.01;
-			double mutationProb = 0.001;
-			Random r = new Random();
+			double crossoverProb = 0.1;
+			double mutationProb = 0.01;
+			CryptoRandom r = new CryptoRandom();
             List<DecisionTree> population = new List<DecisionTree>();
             DecisionTree enemy = new DecisionTree(new List<int> { 100, 100, 50, 0 }, state, maxValues, tests); //TODO enemy powinien byc staly
             //DecisionTree tree = new DecisionTree(new List<int> { 100, 100, 50, 0 }, state, maxValues, tests);
@@ -86,9 +86,9 @@ namespace Inzynierka
 				//krzyzowanie
 				while(IndividualsToCross.Count > 0)
 				{
-					DecisionTree Individual1 = IndividualsToCross[r.Next(IndividualsToCross.Count)];
+					DecisionTree Individual1 = IndividualsToCross[r.Next(0,IndividualsToCross.Count)];
 					IndividualsToCross.Remove(Individual1);
-					DecisionTree Individual2 = IndividualsToCross[r.Next(IndividualsToCross.Count)];
+					DecisionTree Individual2 = IndividualsToCross[r.Next(0,IndividualsToCross.Count)];
 					IndividualsToCross.Remove(Individual2);
 					Crossover(Individual1, Individual2, r);
 					population.Add(Individual1);
@@ -96,6 +96,13 @@ namespace Inzynierka
 				}
 
 				//mutacja
+				for (int i = 0; i < populationSize; i++)
+				{
+					if(r.NextDouble() <= mutationProb)
+					{
+						Mutation(population[i]);
+					}
+				}
 
 				//wybranie najlepszego z poprzedniej populacji i ustawienie na enemy
 				iterations--;
@@ -509,55 +516,49 @@ namespace Inzynierka
 			return fitness;
 		}
 
-		public static void Crossover( DecisionTree individual1, DecisionTree individual2, Random r)
+		public static void Crossover( DecisionTree individual1, DecisionTree individual2, CryptoRandom r)
 		{
 			//wybranie punktu przeciecia z zakresu elementCount
 			//dla obu osobnikow
 			//zamiana miejscami tylko poddrzew wybranych elementow
 			//TODO nie dziala dobrze przy resultNode
 
-			int locus1 = r.Next(1, individual1.elementCount + 1);
-			int locus2 = r.Next(1, individual2.elementCount + 1);
-			Node node1 = individual1.Find(locus1, individual1.root);
-			Node node2 = individual2.Find(locus2, individual2.root);
+			int locus1;
+			int locus2;
+			Node node1;
+			Node node2;
+
+			do
+			{
+				locus1 = r.Next(1, individual1.elementCount + 1);
+				node1 = individual1.Find(locus1, individual1.root);
+
+			} while (node1 is ResultNode);
+
+			do
+			{
+				locus2 = r.Next(1, individual2.elementCount + 1);
+				node2 = individual2.Find(locus2, individual2.root);
+
+			} while (node2 is ResultNode);
 
 			Node tempNode = null;
 
-			if (node1.leftChild != null)
-			{
-				tempNode = node1.leftChild;
-			}
-			if(node2.leftChild != null)
-			{
-				node1.leftChild = node2.leftChild;
-			}
-			else
-			{
-				node1.leftChild = null;
-			}
+			tempNode = node1.leftChild;
+			node1.leftChild = node2.leftChild;
 			node2.leftChild = tempNode;
 
 			tempNode = null;
 
-			if (node1.rightChild != null)
-			{
-				tempNode = node1.rightChild;
-			}
-			if (node2.rightChild != null)
-			{
-				node1.rightChild = node2.rightChild;
-			}
-			else
-			{
-				node1.rightChild = null;
-			}
+			tempNode = node1.rightChild;
+			node1.rightChild = node2.rightChild;
 			node2.rightChild = tempNode;
 
 			individual1.RecalculateKeys();
 			individual2.RecalculateKeys();
 		}
 
-		public static List<DecisionTree> EliteRankingSelection(List<DecisionTree> population, int populationSize, Random r)
+		public static List<DecisionTree> EliteRankingSelection(List<DecisionTree> population, int populationSize, CryptoRandom r)
 		{
 			population = population.OrderBy(p => p.fitness).ToList();
 			List<DecisionTree> SelectedIndividuals = new List<DecisionTree>();
@@ -582,6 +583,11 @@ namespace Inzynierka
 				}
 			}
 			return SelectedIndividuals;
+		}
+
+		public static void Mutation(DecisionTree individual)
+		{
+			//TODO T.T
 		}
 
 		//TODO metoda wyswietlajaca drzewo
