@@ -20,7 +20,7 @@ namespace Inzynierka
 			double mutationProb = 0.01;
 			CryptoRandom r = new CryptoRandom();
             List<DecisionTree> population = new List<DecisionTree>();
-            DecisionTree enemy = new DecisionTree(new List<int> { 100, 100, 50, 0 }, state, maxValues, tests); //TODO enemy powinien byc staly
+            DecisionTree enemy = new DecisionTree(new List<int> { 100, 100, 50, 0 }, state, maxValues, tests, r); //TODO enemy powinien byc staly
             //DecisionTree tree = new DecisionTree(new List<int> { 100, 100, 50, 0 }, state, maxValues, tests);
             //Console.WriteLine("udao sie");
             //Console.WriteLine(tree.decide(state).ToString());
@@ -28,7 +28,7 @@ namespace Inzynierka
             //population init
             for (int i = 0; i < populationSize; i++)
             {
-                population.Add(new DecisionTree(new List<int> { 100, 100, 50, 0 }, state, maxValues, tests));
+                population.Add(new DecisionTree(new List<int> { 100, 100, 50, 0 }, state, maxValues, tests, r));
 				//Console.WriteLine("Wielkosc drzewa: {0}", population[i].elementCount);
 				//Console.WriteLine("Wielkosc drzewa': {0}", population[i].CountElements());
 			}
@@ -100,7 +100,7 @@ namespace Inzynierka
 				{
 					if(r.NextDouble() <= mutationProb)
 					{
-						Mutation(population[i]);
+						Mutation(population[i], r);
 					}
 				}
 
@@ -585,9 +585,19 @@ namespace Inzynierka
 			return SelectedIndividuals;
 		}
 
-		public static void Mutation(DecisionTree individual)
+		public static void Mutation(DecisionTree individual, CryptoRandom r)
 		{
-			//TODO T.T
+			int node = r.Next(1, individual.elementCount + 1);
+			Node nodeToMutate = individual.Find(node, individual.root);
+			if(nodeToMutate is DecisionNode)
+			{
+				Node newNode = individual.generateDecisionNode(;
+			}
+			else if(nodeToMutate is ResultNode)
+			{
+				Node newNode = individual.GenerateResultNode();
+
+			}
 		}
 
 		//TODO metoda wyswietlajaca drzewo

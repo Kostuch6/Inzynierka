@@ -9,17 +9,18 @@ namespace Inzynierka
 {
     public class DecisionTree
     {
-        static CryptoRandom r = new CryptoRandom();
+		private CryptoRandom r;// = new CryptoRandom();
 
 		public int elementCount { get; set; } = 0;
 
 		public Node root { get; set; }
 		public int fitness { get; set; }
 
-		public DecisionTree(List<int> probabilityList, State state, State maxValues, List<Test> tests)
+		public DecisionTree(List<int> probabilityList, State state, State maxValues, List<Test> tests, CryptoRandom r)
         {
             DecisionNode parent = generateDecisionNode(state, maxValues, tests);
 			//Console.WriteLine("root: Stat -> {0}, Test -> {1}, Param -> {2}",parent.Decision.Statistic, parent.Decision.Test.ToString(), parent.Decision.Param);
+			this.r = r;
 			elementCount++;
 			parent.Key = elementCount;
 			root = parent;
