@@ -59,7 +59,10 @@ namespace Inzynierka
 					population[j].fitness = Evaluate(state, maxValues, turn);
                 }
 				//selekcja
-				List<DecisionTree> SelectedIndividuals = EliteRankingSelection(population, populationSize, r);		
+				List<DecisionTree> SelectedIndividuals = EliteRankingSelection(population, populationSize, r);
+
+				//wybranie najlepszego z poprzedniej populacji i ustawienie na enemy
+				enemy = population.OrderByDescending(p => p.fitness).First().Clone();
 
 				population.Clear(); // usuniecie starej populacji
 
@@ -100,11 +103,10 @@ namespace Inzynierka
 				{
 					if(r.NextDouble() <= mutationProb)
 					{
-						Mutation(population[i], r);
+						Mutation(population[i], r, state, maxValues, tests);
 					}
 				}
 
-				//wybranie najlepszego z poprzedniej populacji i ustawienie na enemy
 				iterations--;
 			}
             
@@ -577,7 +579,7 @@ namespace Inzynierka
 					sum += j;
 					if(selectedInt <=sum)
 					{
-						SelectedIndividuals.Add(population[j]);
+						SelectedIndividuals.Add(population[j].Clone());
 						break;
 					}
 				}
@@ -585,18 +587,19 @@ namespace Inzynierka
 			return SelectedIndividuals;
 		}
 
-		public static void Mutation(DecisionTree individual, CryptoRandom r)
+		public static void Mutation(DecisionTree individual, CryptoRandom r, State state, State maxValues, List<Test> tests)
 		{
 			int node = r.Next(1, individual.elementCount + 1);
 			Node nodeToMutate = individual.Find(node, individual.root);
 			if(nodeToMutate is DecisionNode)
 			{
-				Node newNode = individual.generateDecisionNode(;
+				DecisionNode newNode = individual.generateDecisionNode(state, maxValues, tests);
+				((DecisionNode)nodeToMutate).Decision = newNode.Decision;
 			}
 			else if(nodeToMutate is ResultNode)
 			{
-				Node newNode = individual.GenerateResultNode();
-
+				ResultNode newNode = individual.GenerateResultNode();
+				((ResultNode)nodeToMutate).Move = newNode.Move;
 			}
 		}
 

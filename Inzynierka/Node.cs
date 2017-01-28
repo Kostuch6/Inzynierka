@@ -37,5 +37,15 @@ namespace Inzynierka
 			}
 			return elemCount;
 		}
+
+		public Node Clone()
+		{
+			Node clone = (Node)MemberwiseClone();
+			if (leftChild != null)
+				clone.leftChild = (Node)leftChild.Clone();
+			if (rightChild != null)
+				clone.rightChild = (Node)rightChild.Clone();
+			return clone;
+		}
 	}
 }

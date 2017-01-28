@@ -9,8 +9,7 @@ namespace Inzynierka
 {
     public class DecisionTree
     {
-		private CryptoRandom r;// = new CryptoRandom();
-
+		public CryptoRandom R { get; set; }
 		public int elementCount { get; set; } = 0;
 
 		public Node root { get; set; }
@@ -18,14 +17,19 @@ namespace Inzynierka
 
 		public DecisionTree(List<int> probabilityList, State state, State maxValues, List<Test> tests, CryptoRandom r)
         {
-            DecisionNode parent = generateDecisionNode(state, maxValues, tests);
+			R = r;
+			DecisionNode parent = generateDecisionNode(state, maxValues, tests);
 			//Console.WriteLine("root: Stat -> {0}, Test -> {1}, Param -> {2}",parent.Decision.Statistic, parent.Decision.Test.ToString(), parent.Decision.Param);
-			this.r = r;
 			elementCount++;
 			parent.Key = elementCount;
 			root = parent;
             generateTree(probabilityList, parent, 1, state, maxValues, tests);
         }
+
+		public DecisionTree()
+		{
+
+		}
 
         public Move decide(State state)
         {
@@ -52,7 +56,7 @@ namespace Inzynierka
         {
 			//Console.WriteLine("Poziom: {0}", levelIndex);
 			//Console.ReadLine();
-			if (probabilityList[levelIndex] >= r.Next(1, 101))
+			if (probabilityList[levelIndex] >= R.Next(1, 101))
             {
 				//Console.WriteLine("Generowanie lewego wezla");
                 DecisionNode leftChild = generateDecisionNode(state, maxValues, tests);
@@ -71,7 +75,7 @@ namespace Inzynierka
 
 			//Console.WriteLine("Powrot na poziom: {0}", levelIndex);
 
-			if (probabilityList[levelIndex] >= r.Next(1, 101))
+			if (probabilityList[levelIndex] >= R.Next(1, 101))
             {
 				//Console.WriteLine("Generowanie prawego wezla");
 				DecisionNode rightChild = generateDecisionNode(state, maxValues, tests);
@@ -92,9 +96,9 @@ namespace Inzynierka
         public DecisionNode generateDecisionNode(State state, State maxValues, List<Test> tests)
         {
 			List<string> statistics = state.Keys.ToList(); // lista wszystkich statystyk
-            string stat = statistics[r.Next(0,statistics.Count)]; // wybranie losowo jednej statystyki dla decyzji
-            int param = r.Next(0,maxValues[stat]+1); // wylosowanie parametru do porownania statystyki z odpowiedniego przedzialu
-			Test test = tests[r.Next(0,tests.Count)]; // wylosowanie operatora
+            string stat = statistics[R.Next(0,statistics.Count)]; // wybranie losowo jednej statystyki dla decyzji
+            int param = R.Next(0,maxValues[stat]+1); // wylosowanie parametru do porownania statystyki z odpowiedniego przedzialu
+			Test test = tests[R.Next(0,tests.Count)]; // wylosowanie operatora
 			Decision decision = new Decision(stat, test, param);
 			DecisionNode node = new DecisionNode(decision);
 			//Console.WriteLine("Node: Stat -> {0}, Test -> {1}, Param -> {2}", node.Decision.Statistic, node.Decision.Test.ToString(), node.Decision.Param);
@@ -105,7 +109,7 @@ namespace Inzynierka
         public ResultNode GenerateResultNode()
         {
             Array values = Enum.GetValues(typeof(Move));
-            ResultNode Result = new ResultNode((Move)values.GetValue(r.Next(0,values.Length)));
+            ResultNode Result = new ResultNode((Move)values.GetValue(R.Next(0,values.Length)));
 			//Console.WriteLine("Result: {0}", Result.Move.ToString());
             return Result;
         }
@@ -143,6 +147,16 @@ namespace Inzynierka
 			{
 				return null;
 			}
+		}
+
+		public DecisionTree Clone()
+		{
+			DecisionTree clone = new DecisionTree();
+			clone.elementCount = elementCount;
+			clone.fitness = fitness;
+			clone.R = R;
+			clone.root = root.Clone();
+			return clone;
 		}
 	}
 }
