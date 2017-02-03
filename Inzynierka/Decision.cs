@@ -22,6 +22,11 @@ namespace Inzynierka
 			Param = param;
         }
 
+		public Decision()
+		{
+
+		}
+
         public bool test(State state)
         {
             return Test(state[Statistic], Param);

@@ -11,22 +11,26 @@ namespace Inzynierka
     {
         static void Main(string[] args)
         {
-			State state = StateInit();
+			//State state = StateInit();
+			State state = new State();
+			StateInit(state);
 			State maxValues = MaxValuesInit();
 			List<Test> tests = TestsInit();
 			int iterations = 100;
-            int populationSize = 50;
-			double crossoverProb = 0.1;
-			double mutationProb = 0.01;
+            int populationSize = 100;
+			double crossoverProb = 0.2;
+			double mutationProb = 0.001;
+			float averageFitness = 0;
 			CryptoRandom r = new CryptoRandom();
             List<DecisionTree> population = new List<DecisionTree>();
-            DecisionTree enemy = new DecisionTree(new List<int> { 100, 100, 50, 0 }, state, maxValues, tests, r); //TODO enemy powinien byc staly
-            //DecisionTree tree = new DecisionTree(new List<int> { 100, 100, 50, 0 }, state, maxValues, tests);
-            //Console.WriteLine("udao sie");
-            //Console.WriteLine(tree.decide(state).ToString());
+			//DecisionTree enemy = new DecisionTree(new List<int> { 100, 100, 50, 0 }, state, maxValues, tests, r); //TODO enemy powinien byc staly
+			DecisionTree enemy = CreateEnemy(r, state, tests);
+			//DecisionTree tree = new DecisionTree(new List<int> { 100, 100, 50, 0 }, state, maxValues, tests);
+			//Console.WriteLine("udao sie");
+			//Console.WriteLine(tree.decide(state).ToString());
 
-            //population init
-            for (int i = 0; i < populationSize; i++)
+			//population init
+			for (int i = 0; i < populationSize; i++)
             {
                 population.Add(new DecisionTree(new List<int> { 100, 100, 50, 0 }, state, maxValues, tests, r));
 				//Console.WriteLine("Wielkosc drzewa: {0}", population[i].elementCount);
@@ -39,7 +43,7 @@ namespace Inzynierka
 				{
 					//petla walki
 					int turn = 1;
-					while (turn <= 100 && state["HP"] > 0 && state["enemyHP"] > 0)
+					while (turn <= 99 && state["HP"] > 0 && state["enemyHP"] > 0)
 					{
 						//Console.WriteLine("Osobnik {0}, tura: {1}", j, turn);
 						MakeMove(population[j].decide(state), state);
@@ -48,16 +52,24 @@ namespace Inzynierka
 					}
 					Console.WriteLine("HP -> {0}", state["HP"]);
 					Console.WriteLine("enemyHP -> {0}", state["enemyHP"]);
-					Console.WriteLine("distance -> {0}", state["distance"]);
-					Console.WriteLine("isInDanger -> {0}", state["isInDanger"]);
-					Console.WriteLine("enemyIsInDanger -> {0}", state["enemyIsInDanger"]);
-					Console.WriteLine("isDefending -> {0}", state["isDefending"]);
-					Console.WriteLine("enemyIsDefending -> {0}", state["enemyIsDefending"]);
-					state = StateInit();
+					//Console.WriteLine("distance -> {0}", state["distance"]);
+					//Console.WriteLine("isInDanger -> {0}", state["isInDanger"]);
+					//Console.WriteLine("enemyIsInDanger -> {0}", state["enemyIsInDanger"]);
+					//Console.WriteLine("isDefending -> {0}", state["isDefending"]);
+					//Console.WriteLine("enemyIsDefending -> {0}", state["enemyIsDefending"]);
 					//Console.ReadLine();
 
 					population[j].fitness = Evaluate(state, maxValues, turn);
-                }
+
+					//state = StateInit();
+					StateInit(state);
+				}
+
+				averageFitness = population.Sum(p => p.fitness) / populationSize;
+				Console.WriteLine("srednia wartosc funkcji oceny: " + averageFitness);
+				Console.WriteLine("najgorszy osobnik: " + population.Min(p => p.fitness));
+				Console.WriteLine("najlepszy osobnik: " + population.Max(p => p.fitness));
+
 				//selekcja
 				List<DecisionTree> SelectedIndividuals = EliteRankingSelection(population, populationSize, r);
 
@@ -86,6 +98,7 @@ namespace Inzynierka
 					IndividualsToCross.RemoveAt(IndividualsToCross.Count - 1);
 				}
 
+				Console.WriteLine("Skrzyzowane osobniki: " + IndividualsToCross.Count);
 				//krzyzowanie
 				while(IndividualsToCross.Count > 0)
 				{
@@ -98,16 +111,21 @@ namespace Inzynierka
 					population.Add(Individual2);
 				}
 
+				int mutationCount = 0;
 				//mutacja
 				for (int i = 0; i < populationSize; i++)
 				{
 					if(r.NextDouble() <= mutationProb)
 					{
 						Mutation(population[i], r, state, maxValues, tests);
+						mutationCount++;
 					}
 				}
+				Console.WriteLine("Zmutowane osobniki: " + mutationCount);
+				
 
 				iterations--;
+				Console.ReadLine();
 			}
             
 			Console.ReadLine();
@@ -115,8 +133,8 @@ namespace Inzynierka
 
 		static void MakeMove(Move move, State state)
 		{
-			Console.WriteLine("Ruch osobnika: " +move.ToString());
-			if(state["enemyIsInDanger"] == 1)
+			//Console.WriteLine("Ruch osobnika: " + move.ToString());
+			if (state["enemyIsInDanger"] == 1)
 			{
 				if (state["enemyIsDefending"] == 1)
 				{
@@ -293,7 +311,7 @@ namespace Inzynierka
 
 		static void EnemyMakeMove(Move move, State state)
 		{
-			Console.WriteLine("Ruch przeciwnika: " + move.ToString());
+			//Console.WriteLine("Ruch przeciwnika: " + move.ToString());
 
 			if (state["isInDanger"] == 1)
 			{
@@ -470,9 +488,10 @@ namespace Inzynierka
 			}
 		}
 
-		public static State StateInit()
+		public static void StateInit(State state)
         {
-			State state = new State();
+			//State state = new State();
+			state.Clear();
 			state.Add("HP", 100);
             state.Add("enemyHP", 100);
             state.Add("distance", 5);
@@ -480,7 +499,7 @@ namespace Inzynierka
             state.Add("enemyIsInDanger", 0);
             state.Add("isDefending", 0);
             state.Add("enemyIsDefending", 0);
-			return state;
+			//return state;
         }
 
         public static State MaxValuesInit()
@@ -511,7 +530,7 @@ namespace Inzynierka
 		public static int Evaluate(State state, State maxValues, int turn)
 		{
 			int fitness = ((maxValues["enemyHP"] - state["enemyHP"]) * 2) + state["HP"] - turn;
-			if(state["HP"] == 0)
+			if (state["HP"] == 0)
 			{
 				fitness /= 2;
 			}
@@ -523,7 +542,7 @@ namespace Inzynierka
 			//wybranie punktu przeciecia z zakresu elementCount
 			//dla obu osobnikow
 			//zamiana miejscami tylko poddrzew wybranych elementow
-			//TODO nie dziala dobrze przy resultNode
+
 
 			int locus1;
 			int locus2;
@@ -565,6 +584,13 @@ namespace Inzynierka
 			population = population.OrderBy(p => p.fitness).ToList();
 			List<DecisionTree> SelectedIndividuals = new List<DecisionTree>();
 			//SelectedIndividuals.Add(population[populationSize-1]); //przepisanie najlepszego osobnika bez zmian
+
+			// DEBUG
+
+			int[] debugQuantity = new int[populationSize];
+
+			// DEBUG
+
 			int totalSum = 0;
 			for (int i = 1; i < populationSize; i++)
 			{
@@ -579,11 +605,21 @@ namespace Inzynierka
 					sum += j;
 					if(selectedInt <=sum)
 					{
+						debugQuantity[j]++;
 						SelectedIndividuals.Add(population[j].Clone());
 						break;
 					}
 				}
 			}
+
+			// DEBUG
+
+			//for (int i = 0; i < populationSize; i++)
+			//{
+			//	Console.WriteLine("Osobnik " + i + " wybrany " + debugQuantity[i] );
+			//}
+
+			// DEBUG
 			return SelectedIndividuals;
 		}
 
@@ -601,6 +637,22 @@ namespace Inzynierka
 				ResultNode newNode = individual.GenerateResultNode();
 				((ResultNode)nodeToMutate).Move = newNode.Move;
 			}
+		}
+
+		public static DecisionTree CreateEnemy(CryptoRandom r, State state, List<Test> tests)
+		{
+			ResultNode node3 = new ResultNode { Key = 3, Move = Move.LONG_MOVE_FORWARD };
+			ResultNode node5 = new ResultNode { Key = 5, Move = Move.LONG_MOVE_FORWARD };
+			ResultNode node6 = new ResultNode { Key = 6, Move = Move.ATTACK_ROCKET };
+			ResultNode node9 = new ResultNode { Key = 9, Move = Move.SHORT_MOVE_FORWARD_THEN_ATTACK };
+			ResultNode node10 = new ResultNode { Key = 10, Move = Move.SHORT_MOVE_FORWARD };
+			ResultNode node11 = new ResultNode { Key = 11, Move = Move.ATTACK_FAR };
+			DecisionNode node4 = new DecisionNode { Key = 4, Decision = new Decision { Statistic = "isInDanger", Param = 0, Test = tests[0] }, leftChild = node5, rightChild = node6 };
+			DecisionNode node8 = new DecisionNode { Key = 8, Decision = new Decision { Statistic = "distance", Param = 4, Test = tests[2] }, leftChild = node9, rightChild = node10 };
+			DecisionNode node2 = new DecisionNode { Key = 2, Decision = new Decision { Statistic = "enemyIsDefending", Param = 0, Test = tests[0] }, leftChild = node3, rightChild = node4 };
+			DecisionNode node7 = new DecisionNode { Key = 7, Decision = new Decision { Statistic = "isInDanger", Param = 0, Test = tests[0] }, leftChild = node8, rightChild = node11 };
+			DecisionNode node1 = new DecisionNode { Key = 1, Decision = new Decision { Statistic = "distance", Param = 6, Test = tests[0] }, leftChild = node2, rightChild = node7 };
+			return new DecisionTree { R = r, elementCount = 11, fitness = 0, root = node1 };
 		}
 
 		//TODO metoda wyswietlajaca drzewo

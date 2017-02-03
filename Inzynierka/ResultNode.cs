@@ -16,6 +16,11 @@ namespace Inzynierka
             Move = move;
         }
 
+		public ResultNode()
+		{
+
+		}
+
         public override Move decide(State state)
         {
             return Move;
