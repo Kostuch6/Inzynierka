@@ -17,13 +17,13 @@ namespace Inzynierka
 			State maxValues = MaxValuesInit();
 			List<Test> tests = TestsInit();
 			int iterations = 100;
-            int populationSize = 100;
-			double crossoverProb = 0.2;
+            int populationSize = 50;
+			double crossoverProb = 0.1;
 			double mutationProb = 0.001;
 			float averageFitness = 0;
 			CryptoRandom r = new CryptoRandom();
             List<DecisionTree> population = new List<DecisionTree>();
-			//DecisionTree enemy = new DecisionTree(new List<int> { 100, 100, 50, 0 }, state, maxValues, tests, r); //TODO enemy powinien byc staly
+			//DecisionTree enemy = new DecisionTree(new List<int> { 100, 100, 50, 0 }, state, maxValues, tests, r); 
 			DecisionTree enemy = CreateEnemy(r, state, tests);
 			//DecisionTree tree = new DecisionTree(new List<int> { 100, 100, 50, 0 }, state, maxValues, tests);
 			//Console.WriteLine("udao sie");
@@ -74,7 +74,7 @@ namespace Inzynierka
 				List<DecisionTree> SelectedIndividuals = EliteRankingSelection(population, populationSize, r);
 
 				//wybranie najlepszego z poprzedniej populacji i ustawienie na enemy
-				enemy = population.OrderByDescending(p => p.fitness).First().Clone();
+				//enemy = population.OrderByDescending(p => p.fitness).First().Clone();
 
 				population.Clear(); // usuniecie starej populacji
 
@@ -106,7 +106,7 @@ namespace Inzynierka
 					IndividualsToCross.Remove(Individual1);
 					DecisionTree Individual2 = IndividualsToCross[r.Next(0,IndividualsToCross.Count)];
 					IndividualsToCross.Remove(Individual2);
-					Crossover(Individual1, Individual2, r);
+					CrossoverWithParent(Individual1, Individual2, r);
 					population.Add(Individual1);
 					population.Add(Individual2);
 				}
@@ -123,7 +123,6 @@ namespace Inzynierka
 				}
 				Console.WriteLine("Zmutowane osobniki: " + mutationCount);
 				
-
 				iterations--;
 				Console.ReadLine();
 			}
@@ -527,9 +526,9 @@ namespace Inzynierka
 			return Tests;
 		}
 
-		public static int Evaluate(State state, State maxValues, int turn)
+		public static double Evaluate(State state, State maxValues, int turn, int elementCount) //TODO kara za wielkosc 
 		{
-			int fitness = ((maxValues["enemyHP"] - state["enemyHP"]) * 2) + state["HP"] - turn;
+			double fitness = (((maxValues["enemyHP"] - state["enemyHP"]) * 2) + state["HP"] - turn) * (10.0/elementCount);
 			if (state["HP"] == 0)
 			{
 				fitness /= 2;
@@ -542,7 +541,6 @@ namespace Inzynierka
 			//wybranie punktu przeciecia z zakresu elementCount
 			//dla obu osobnikow
 			//zamiana miejscami tylko poddrzew wybranych elementow
-
 
 			int locus1;
 			int locus2;
@@ -579,17 +577,50 @@ namespace Inzynierka
 			individual2.RecalculateKeys();
 		}
 
+		public static void CrossoverWithParent(DecisionTree individual1, DecisionTree individual2, CryptoRandom r)
+		{
+			int locus1;
+			int locus2;
+			Node node1;
+			Node node2;
+			Node parent1;
+			Node parent2;
+
+			locus1 = r.Next(2, individual1.elementCount + 1);
+			node1 = individual1.Find(locus1, individual1.root);
+			parent1 = individual1.FindParentOfNode(locus1, individual1.root);
+
+			locus2 = r.Next(2, individual2.elementCount + 1);
+			node2 = individual2.Find(locus2, individual2.root);
+			parent2 = individual2.FindParentOfNode(locus2, individual2.root);
+
+			if(parent1.leftChild.Equals(node1))
+			{
+				parent1.leftChild = node2;
+			}
+			else
+			{
+				parent1.rightChild = node2;
+			}
+
+			if (parent2.leftChild.Equals(node2))
+			{
+				parent2.leftChild = node1;
+			}
+			else
+			{
+				parent2.rightChild = node1;
+			}
+
+			individual1.RecalculateKeys();
+			individual2.RecalculateKeys();
+		}
+
 		public static List<DecisionTree> EliteRankingSelection(List<DecisionTree> population, int populationSize, CryptoRandom r)
 		{
 			population = population.OrderBy(p => p.fitness).ToList();
 			List<DecisionTree> SelectedIndividuals = new List<DecisionTree>();
 			//SelectedIndividuals.Add(population[populationSize-1]); //przepisanie najlepszego osobnika bez zmian
-
-			// DEBUG
-
-			int[] debugQuantity = new int[populationSize];
-
-			// DEBUG
 
 			int totalSum = 0;
 			for (int i = 1; i < populationSize; i++)
@@ -605,21 +636,12 @@ namespace Inzynierka
 					sum += j;
 					if(selectedInt <=sum)
 					{
-						debugQuantity[j]++;
 						SelectedIndividuals.Add(population[j].Clone());
 						break;
 					}
 				}
 			}
 
-			// DEBUG
-
-			//for (int i = 0; i < populationSize; i++)
-			//{
-			//	Console.WriteLine("Osobnik " + i + " wybrany " + debugQuantity[i] );
-			//}
-
-			// DEBUG
 			return SelectedIndividuals;
 		}
 

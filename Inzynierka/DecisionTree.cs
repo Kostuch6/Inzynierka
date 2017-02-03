@@ -149,6 +149,30 @@ namespace Inzynierka
 			}
 		}
 
+		public Node FindParentOfNode(int i, Node node, Node parent = null)
+		{
+			if (node != null)
+			{
+				if (node.Key == i)
+				{
+					return parent;
+				}
+				else
+				{
+					Node foundParent = FindParentOfNode(i, node.leftChild, node);
+					if (foundParent == null)
+					{
+						foundParent = FindParentOfNode(i, node.rightChild, node);
+					}
+					return foundParent;
+				}
+			}
+			else
+			{
+				return null;
+			}
+		}
+
 		public DecisionTree Clone()
 		{
 			DecisionTree clone = new DecisionTree();
