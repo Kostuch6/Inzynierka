@@ -17,17 +17,14 @@ namespace Inzynierka
 			State maxValues = MaxValuesInit();
 			List<Test> tests = TestsInit();
 			int iterations = 100;
-            int populationSize = 50;
+            int populationSize = 20;
 			double crossoverProb = 0.1;
-			double mutationProb = 0.001;
-			float averageFitness = 0;
+			double mutationProb = 0.1;
+			double averageFitness = 0;
 			CryptoRandom r = new CryptoRandom();
             List<DecisionTree> population = new List<DecisionTree>();
-			//DecisionTree enemy = new DecisionTree(new List<int> { 100, 100, 50, 0 }, state, maxValues, tests, r); 
-			DecisionTree enemy = CreateEnemy(r, state, tests);
-			//DecisionTree tree = new DecisionTree(new List<int> { 100, 100, 50, 0 }, state, maxValues, tests);
-			//Console.WriteLine("udao sie");
-			//Console.WriteLine(tree.decide(state).ToString());
+			DecisionTree enemy = new DecisionTree(new List<int> { 100, 100, 50, 0 }, state, maxValues, tests, r); 
+			//DecisionTree enemy = CreateEnemy(r, state, tests);
 
 			//population init
 			for (int i = 0; i < populationSize; i++)
@@ -46,12 +43,12 @@ namespace Inzynierka
 					while (turn <= 99 && state["HP"] > 0 && state["enemyHP"] > 0)
 					{
 						//Console.WriteLine("Osobnik {0}, tura: {1}", j, turn);
-						MakeMove(population[j].decide(state), state);
 						EnemyMakeMove(enemy.decide(state), state);
+						MakeMove(population[j].decide(state), state);
 						turn++;
 					}
-					Console.WriteLine("HP -> {0}", state["HP"]);
-					Console.WriteLine("enemyHP -> {0}", state["enemyHP"]);
+					//Console.WriteLine("HP -> {0}", state["HP"]);
+					//Console.WriteLine("enemyHP -> {0}", state["enemyHP"]);
 					//Console.WriteLine("distance -> {0}", state["distance"]);
 					//Console.WriteLine("isInDanger -> {0}", state["isInDanger"]);
 					//Console.WriteLine("enemyIsInDanger -> {0}", state["enemyIsInDanger"]);
@@ -59,7 +56,7 @@ namespace Inzynierka
 					//Console.WriteLine("enemyIsDefending -> {0}", state["enemyIsDefending"]);
 					//Console.ReadLine();
 
-					population[j].fitness = Evaluate(state, maxValues, turn);
+					population[j].fitness = Evaluate(state, maxValues, turn, population[j].elementCount);
 
 					//state = StateInit();
 					StateInit(state);
@@ -106,7 +103,7 @@ namespace Inzynierka
 					IndividualsToCross.Remove(Individual1);
 					DecisionTree Individual2 = IndividualsToCross[r.Next(0,IndividualsToCross.Count)];
 					IndividualsToCross.Remove(Individual2);
-					CrossoverWithParent(Individual1, Individual2, r);
+					Crossover(Individual1, Individual2, r);
 					population.Add(Individual1);
 					population.Add(Individual2);
 				}
@@ -528,10 +525,14 @@ namespace Inzynierka
 
 		public static double Evaluate(State state, State maxValues, int turn, int elementCount) //TODO kara za wielkosc 
 		{
-			double fitness = (((maxValues["enemyHP"] - state["enemyHP"]) * 2) + state["HP"] - turn) * (10.0/elementCount);
+			double fitness = (((maxValues["enemyHP"] - state["enemyHP"]) * 2) + state["HP"] - turn);
 			if (state["HP"] == 0)
 			{
 				fitness /= 2;
+			}
+			if(elementCount > 10)
+			{
+				fitness *= 10.0 / elementCount;
 			}
 			return fitness;
 		}
@@ -669,10 +670,10 @@ namespace Inzynierka
 			ResultNode node9 = new ResultNode { Key = 9, Move = Move.SHORT_MOVE_FORWARD_THEN_ATTACK };
 			ResultNode node10 = new ResultNode { Key = 10, Move = Move.SHORT_MOVE_FORWARD };
 			ResultNode node11 = new ResultNode { Key = 11, Move = Move.ATTACK_FAR };
-			DecisionNode node4 = new DecisionNode { Key = 4, Decision = new Decision { Statistic = "isInDanger", Param = 0, Test = tests[0] }, leftChild = node5, rightChild = node6 };
+			DecisionNode node4 = new DecisionNode { Key = 4, Decision = new Decision { Statistic = "enemyIsInDanger", Param = 0, Test = tests[0] }, leftChild = node5, rightChild = node6 };
 			DecisionNode node8 = new DecisionNode { Key = 8, Decision = new Decision { Statistic = "distance", Param = 4, Test = tests[2] }, leftChild = node9, rightChild = node10 };
 			DecisionNode node2 = new DecisionNode { Key = 2, Decision = new Decision { Statistic = "enemyIsDefending", Param = 0, Test = tests[0] }, leftChild = node3, rightChild = node4 };
-			DecisionNode node7 = new DecisionNode { Key = 7, Decision = new Decision { Statistic = "isInDanger", Param = 0, Test = tests[0] }, leftChild = node8, rightChild = node11 };
+			DecisionNode node7 = new DecisionNode { Key = 7, Decision = new Decision { Statistic = "enemyIsInDanger", Param = 0, Test = tests[0] }, leftChild = node8, rightChild = node11 };
 			DecisionNode node1 = new DecisionNode { Key = 1, Decision = new Decision { Statistic = "distance", Param = 6, Test = tests[0] }, leftChild = node2, rightChild = node7 };
 			return new DecisionTree { R = r, elementCount = 11, fitness = 0, root = node1 };
 		}

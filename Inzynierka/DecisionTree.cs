@@ -13,7 +13,7 @@ namespace Inzynierka
 		public int elementCount { get; set; } = 0;
 
 		public Node root { get; set; }
-		public int fitness { get; set; }
+		public double fitness { get; set; }
 
 		public DecisionTree(List<int> probabilityList, State state, State maxValues, List<Test> tests, CryptoRandom r)
         {
