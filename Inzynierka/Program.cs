@@ -11,13 +11,14 @@ namespace Inzynierka
     {
         static void Main(string[] args)
         {
+			string line = "";
 			//State state = StateInit();
 			State state = new State();
 			StateInit(state);
 			State maxValues = MaxValuesInit();
 			List<Test> tests = TestsInit();
 			int iterations = 100;
-            int populationSize = 20;
+            int populationSize = 10;
 			double crossoverProb = 0.1;
 			double mutationProb = 0.1;
 			double averageFitness = 0;
@@ -43,7 +44,8 @@ namespace Inzynierka
 					while (turn <= 99 && state["HP"] > 0 && state["enemyHP"] > 0)
 					{
 						//Console.WriteLine("Osobnik {0}, tura: {1}", j, turn);
-						EnemyMakeMove(enemy.decide(state), state);
+						//EnemyMakeMove(enemy.decide(state), state);
+						EnemyMoves(state);
 						MakeMove(population[j].decide(state), state);
 						turn++;
 					}
@@ -66,6 +68,7 @@ namespace Inzynierka
 				Console.WriteLine("srednia wartosc funkcji oceny: " + averageFitness);
 				Console.WriteLine("najgorszy osobnik: " + population.Min(p => p.fitness));
 				Console.WriteLine("najlepszy osobnik: " + population.Max(p => p.fitness));
+				line = String.Concat(line, (averageFitness.ToString() + " " + population.Max(p => p.fitness) + " "  + "\r\n"));
 
 				//selekcja
 				List<DecisionTree> SelectedIndividuals = EliteRankingSelection(population, populationSize, r);
@@ -123,7 +126,10 @@ namespace Inzynierka
 				iterations--;
 				Console.ReadLine();
 			}
-            
+			System.IO.StreamWriter file = new System.IO.StreamWriter("d:\\test.txt");
+			file.WriteLine(line);
+
+			file.Close();
 			Console.ReadLine();
 		}
 
@@ -484,6 +490,132 @@ namespace Inzynierka
 			}
 		}
 
+		static int EnemyMoves(State state)
+		{
+			if(state["enemyHP"] < 30)
+			{
+				state["distance"] += 1;
+				state["enemyIsInDanger"] = 0;
+				return 0;
+			}
+
+			if (state["enemyIsInDanger"] == 1)
+			{
+				//ZMIANA POZYCJI (ruch do przodu, do tylu, atak z ruchem
+				if(state["distance"] > 6)
+				{
+					if(state["enemyHP"] > 70)
+					{
+						state["isInDanger"] = 1;
+						return 0;
+					}
+					state["distance"] -= 2;
+					state["enemyIsInDanger"] = 0;
+					return 0;
+				}
+				else if(state["distance"] == 5)
+				{
+					state["distance"] -= 1;
+					state["enemyIsInDanger"] = 0;
+					return 0;
+				}
+				else if(state["distance"] == 4)
+				{
+					state["distance"] -= 1;
+					state["enemyIsInDanger"] = 0;
+					if (state["isDefending"] == 1)
+					{
+						state["HP"] -= Const.CloseDmg / 2;
+					}
+					else
+					{
+						state["HP"] -= Const.CloseDmg;
+					}
+					return 0;
+				}
+				else if(state["distance"] <= 3)
+				{
+					if (state["isDefending"] == 1)
+					{
+						state["HP"] -= Const.CloseDmg / 2;
+					}
+					else
+					{
+						state["HP"] -= Const.CloseDmg;
+					}
+
+					if(state["enemyHP"] <= 60)
+					{
+						state["distance"] += 1;
+						state["enemyIsInDanger"] = 0;
+					}
+					return 0;
+				}
+				else
+				{
+					Console.WriteLine("Cos sie mocno zepsulo");
+					return 1;
+				}
+            }
+			else
+			{
+				if(state["distance"] > 6)
+				{
+					state["isInDanger"] = 1;
+					return 0;
+				}
+				else if(state["distance"] > 3)
+				{
+					if(state["HP"] <= 30)
+					{
+						if (state["isDefending"] == 1)
+						{
+							state["HP"] -= Const.FarDmg / 2;
+						}
+						else
+						{
+							state["HP"] -= Const.FarDmg;
+						}
+						return 0;
+					}
+					else
+					{
+						state["distance"] -= 2;
+						state["enemyIsInDanger"] = 0;
+						return 0;
+					}
+				}
+				else if(state["distance"] == 3)
+				{
+					if (state["isDefending"] == 1)
+					{
+						state["HP"] -= Const.CloseDmg / 2;
+					}
+					else
+					{
+						state["HP"] -= Const.CloseDmg;
+					}
+					return 0;
+				}
+				else if(state["distance"] <= 2)
+				{
+					if (state["isDefending"] == 1)
+					{
+						state["HP"] -= Const.CloseDmg / 2;
+					}
+					else
+					{
+						state["HP"] -= Const.CloseDmg;
+					}
+					state["distance"] += 1;
+					state["enemyIsInDanger"] = 0;
+					return 0;
+				}
+			}
+			Console.WriteLine("ZEPSULO SIE");
+			return 1;
+		}
+
 		public static void StateInit(State state)
         {
 			//State state = new State();
@@ -523,17 +655,17 @@ namespace Inzynierka
 			return Tests;
 		}
 
-		public static double Evaluate(State state, State maxValues, int turn, int elementCount) //TODO kara za wielkosc 
+		public static double Evaluate(State state, State maxValues, int turn, int elementCount)
 		{
 			double fitness = (((maxValues["enemyHP"] - state["enemyHP"]) * 2) + state["HP"] - turn);
 			if (state["HP"] == 0)
 			{
 				fitness /= 2;
 			}
-			if(elementCount > 10)
-			{
-				fitness *= 10.0 / elementCount;
-			}
+			//if(elementCount > 10)
+			//{
+			//	fitness *= 10.0 / elementCount;
+			//}
 			return fitness;
 		}
 
